@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +24,8 @@ public class LessonController {
     private final LessonService lessonService;
 
     @PostMapping
-    @Operation(summary = "Create a lesson (Admin)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a lesson (Admin only)")
     public ResponseEntity<LessonResponse> createLesson(@Valid @RequestBody LessonRequest request) {
         return ResponseEntity.status(201).body(lessonService.createLesson(request));
     }
@@ -48,7 +50,8 @@ public class LessonController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update a lesson (Admin)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update a lesson (Admin only)")
     public ResponseEntity<LessonResponse> updateLesson(
             @PathVariable Long id,
             @Valid @RequestBody LessonRequest request) {
@@ -56,13 +59,22 @@ public class LessonController {
     }
 
     @PatchMapping("/{id}/publish")
-    @Operation(summary = "Publish a lesson (Admin)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Publish a lesson (Admin only)")
     public ResponseEntity<LessonResponse> publishLesson(@PathVariable Long id) {
         return ResponseEntity.ok(lessonService.publishLesson(id));
     }
 
+    @PatchMapping("/{id}/unpublish")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Unpublish a lesson (Admin only)")
+    public ResponseEntity<LessonResponse> unpublishLesson(@PathVariable Long id) {
+        return ResponseEntity.ok(lessonService.unpublishLesson(id));
+    }
+
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a lesson (Admin)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete a lesson (Admin only)")
     public ResponseEntity<Void> deleteLesson(@PathVariable Long id) {
         lessonService.deleteLesson(id);
         return ResponseEntity.noContent().build();

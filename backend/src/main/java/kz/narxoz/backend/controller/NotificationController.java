@@ -2,7 +2,7 @@ package kz.narxoz.backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kz.narxoz.backend.entity.Notification;
+import kz.narxoz.backend.dto.response.NotificationResponse;
 import kz.narxoz.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +21,14 @@ public class NotificationController {
 
     @GetMapping
     @Operation(summary = "Get notifications for the authenticated parent")
-    public ResponseEntity<List<Notification>> getNotifications(
+    public ResponseEntity<List<NotificationResponse>> getNotifications(
             @AuthenticationPrincipal String email) {
         return ResponseEntity.ok(notificationService.getNotificationsForParent(email));
     }
 
     @PatchMapping("/{id}/read")
     @Operation(summary = "Mark a notification as read")
-    public ResponseEntity<Notification> markAsRead(
+    public ResponseEntity<NotificationResponse> markAsRead(
             @PathVariable Long id,
             @AuthenticationPrincipal String email) {
         return ResponseEntity.ok(notificationService.markAsRead(id, email));

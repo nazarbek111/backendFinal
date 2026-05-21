@@ -79,6 +79,14 @@ public class LessonService {
         return mapToResponse(lesson);
     }
 
+    public LessonResponse unpublishLesson(Long id) {
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+        lesson.setPublished(false);
+        lessonRepository.save(lesson);
+        return mapToResponse(lesson);
+    }
+
     public void deleteLesson(Long id) {
         lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));

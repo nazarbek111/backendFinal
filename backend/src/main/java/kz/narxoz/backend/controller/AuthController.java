@@ -10,7 +10,7 @@ import kz.narxoz.backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication; // Поменял для безопасности
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,23 +31,6 @@ public class AuthController {
     @Operation(summary = "Login and receive access + refresh tokens")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
-    }
-
-    // ВРЕМЕННЫЙ МЕТОД ДЛЯ ТЕБЯ: Создает юзера прямо из кода
-    @GetMapping("/setup-test-user")
-    @Operation(summary = "Создать тестового юзера в базе автоматически")
-    public ResponseEntity<String> setup() {
-        RegisterRequest testUser = new RegisterRequest();
-        testUser.setEmail("nazarbek.kaliyev@gmail.com");
-        testUser.setPassword("060106");
-        testUser.setName("Nazarbek");
-
-        try {
-            authService.register(testUser);
-            return ResponseEntity.ok("Юзер создан! Теперь логинься на фронте с паролем 060106");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Ошибка: возможно юзер уже есть или " + e.getMessage());
-        }
     }
 
     @PostMapping("/refresh")

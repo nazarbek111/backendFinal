@@ -9,6 +9,7 @@ import kz.narxoz.backend.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,50 +17,39 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/exercises")
 @RequiredArgsConstructor
-@Tag(name = "Exercises", description = "Управление упражнениями для уроков")
+@Tag(name = "Exercises", description = "Exercise management for lessons")
 public class ExerciseController {
 
     private final ExerciseService exerciseService;
 
-    /**
-     * ПОЛУЧИТЬ ВСЕ ЗАДАНИЯ УРОКА (Для игры)
-     * Именно этот эндпоинт ты проверял в браузере. Он возвращает List (массив).
-     */
     @GetMapping("/lesson/{lessonId}")
-    @Operation(summary = "Получить все упражнения для конкретного урока")
+    @Operation(summary = "Get all exercises for a lesson")
     public ResponseEntity<List<ExerciseResponse>> getExercisesByLesson(@PathVariable Long lessonId) {
-        // Мы берем первую страницу с запасом в 100 элементов, чтобы получить всё сразу
         var pageResponse = exerciseService.getExercisesByLesson(lessonId, PageRequest.of(0, 100));
         return ResponseEntity.ok(pageResponse.getContent());
     }
 
-    /**
-     * СОЗДАТЬ ЗАДАНИЕ
-     */
     @PostMapping("/lesson/{lessonId}")
-    @Operation(summary = "Создать новое упражнение для урока")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create an exercise for a lesson (Admin only)")
     public ResponseEntity<ExerciseResponse> createExercise(
             @PathVariable Long lessonId,
             @Valid @RequestBody ExerciseRequest request) {
         return ResponseEntity.status(201).body(exerciseService.createExercise(lessonId, request));
     }
 
-    /**
-     * ОБНОВИТЬ ЗАДАНИЕ
-     */
     @PutMapping("/{id}")
-    @Operation(summary = "Обновить существующее упражнение")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update an exercise (Admin only)")
     public ResponseEntity<ExerciseResponse> updateExercise(
             @PathVariable Long id,
             @Valid @RequestBody ExerciseRequest request) {
         return ResponseEntity.ok(exerciseService.updateExercise(id, request));
     }
 
-    /**
-     * УДАЛИТЬ ЗАДАНИЕ
-     */
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить упражнение")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete an exercise (Admin only)")
     public ResponseEntity<Void> deleteExercise(@PathVariable Long id) {
         exerciseService.deleteExercise(id);
         return ResponseEntity.noContent().build();

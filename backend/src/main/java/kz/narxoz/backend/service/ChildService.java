@@ -94,6 +94,7 @@ public class ChildService {
         response.setXpPoints(child.getXpPoints());
         response.setLevel(child.getLevel());
         response.setStreak(child.getStreak());
+        response.setLastActiveDate(child.getLastActiveDate());
         return response;
     }
 }

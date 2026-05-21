@@ -1,6 +1,7 @@
 package kz.narxoz.backend.dto.response;
 
 import lombok.Data;
+import java.time.LocalDate;
 
 @Data
 public class ChildResponse {
@@ -11,4 +12,5 @@ public class ChildResponse {
     private Integer xpPoints;
     private Integer level;
     private Integer streak;
+    private LocalDate lastActiveDate;
 }

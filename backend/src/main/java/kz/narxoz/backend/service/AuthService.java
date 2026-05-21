@@ -15,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -28,7 +26,6 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Проверку на существование оставляем
         if (parentRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
@@ -36,7 +33,7 @@ public class AuthService {
         Parent parent = Parent.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword())) // FIX: hash the password
                 .role(Role.PARENT)
                 .build();
 
@@ -49,7 +46,7 @@ public class AuthService {
         Parent parent = parentRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!parent.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), parent.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -79,7 +76,6 @@ public class AuthService {
         refreshTokenRepository.deleteAllByParentId(parent.getId());
     }
 
-    // ===== Helper =====
     private AuthResponse buildAuthResponse(Parent parent) {
         String accessToken = jwtUtil.generateToken(parent.getEmail(), parent.getRole().name());
         String rawRefresh = jwtUtil.generateRefreshToken();

@@ -20,9 +20,7 @@ public class ExerciseService {
     private final LessonRepository lessonRepository;
 
     public PageResponse<ExerciseResponse> getExercisesByLesson(Long lessonId, Pageable pageable) {
-
         Page<Exercise> page = exerciseRepository.findByLessonId(lessonId, pageable);
-
         return new PageResponse<>(
                 page.getContent().stream().map(this::mapToResponse).toList(),
                 page.getTotalElements(),
@@ -33,7 +31,6 @@ public class ExerciseService {
     }
 
     public ExerciseResponse createExercise(Long lessonId, ExerciseRequest request) {
-
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
@@ -48,7 +45,6 @@ public class ExerciseService {
     }
 
     public ExerciseResponse updateExercise(Long id, ExerciseRequest request) {
-
         Exercise exercise = exerciseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
@@ -61,19 +57,19 @@ public class ExerciseService {
     }
 
     public void deleteExercise(Long id) {
+        if (!exerciseRepository.existsById(id)) {
+            throw new RuntimeException("Exercise not found");
+        }
         exerciseRepository.deleteById(id);
     }
 
     private ExerciseResponse mapToResponse(Exercise exercise) {
-
         ExerciseResponse response = new ExerciseResponse();
         response.setId(exercise.getId());
         response.setLessonId(exercise.getLesson().getId());
         response.setQuestion(exercise.getQuestion());
-        response.setCorrectAnswer(exercise.getCorrectAnswer());
         response.setOptions(exercise.getOptions());
         response.setOrderIndex(exercise.getOrderIndex());
-
         return response;
     }
 }

@@ -3,9 +3,9 @@ package kz.narxoz.backend.service;
 import kz.narxoz.backend.dto.response.LeaderboardResponse;
 import kz.narxoz.backend.repository.ChildRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -25,15 +25,8 @@ public class LeaderboardService {
             }
         }
 
-        final int finalMinAge = minAge;
-        final int finalMaxAge = maxAge;
-
-        return childRepository.findAll().stream()
-                .filter(child -> child.getAge() != null
-                        && child.getAge() >= finalMinAge
-                        && child.getAge() <= finalMaxAge)
-                .sorted(Comparator.comparing(c -> -c.getXpPoints()))
-                .limit(10)
+        return childRepository.findLeaderboard(minAge, maxAge, PageRequest.of(0, 10))
+                .stream()
                 .map(child -> new LeaderboardResponse(child.getName(), child.getXpPoints()))
                 .toList();
     }

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kz.narxoz.backend.dto.request.ExerciseSubmitRequest;
 import kz.narxoz.backend.dto.response.ExerciseResultResponse;
-import kz.narxoz.backend.entity.ExerciseResult;
 import kz.narxoz.backend.service.ExerciseResultService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +20,12 @@ public class ResultController {
 
     private final ExerciseResultService resultService;
 
-    @PostMapping
+    @PostMapping("/exercise/{exerciseId}")
     @Operation(summary = "Сохранить результат выполнения задания")
-    public ResponseEntity<Void> saveResult(@Valid @RequestBody ExerciseSubmitRequest request) {
-        resultService.saveResult(request);
+    public ResponseEntity<Void> saveResult(
+            @PathVariable Long exerciseId,
+            @Valid @RequestBody ExerciseSubmitRequest request) {
+        resultService.saveResult(exerciseId, request);
         return ResponseEntity.ok().build();
     }
 

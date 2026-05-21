@@ -40,22 +40,33 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Открытые эндпоинты (доступны без токена)
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/api/v1/lessons/**",    // РАЗРЕШЕНО: просмотр уроков
-                                "/api/v1/exercises/**",
-                                "/api/v1/results/**"
-                                // РАЗРЕШЕНО: получение заданий
+                                "/swagger-ui.html"
                         ).permitAll()
 
-                        // Доступ только для админа
+                        .requestMatchers(HttpMethod.POST, "/api/v1/lessons/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/lessons/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/lessons/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/lessons/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/exercises/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/exercises/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/exercises/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/units/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/units/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/units/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/units/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/lessons/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/exercises/lesson/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/units/**").permitAll()
+
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                        // Все остальные запросы (прогресс, профиль и т.д.) требуют токен
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -67,8 +78,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Настройка разрешенных доменов
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

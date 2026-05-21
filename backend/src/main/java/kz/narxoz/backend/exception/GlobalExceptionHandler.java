@@ -24,8 +24,27 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(422, message, LocalDateTime.now()));
     }
 
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(404, ex.getMessage(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, ex.getMessage(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(AccessDeniiedBusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessDenied(AccessDeniiedBusinessException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(403, ex.getMessage(), LocalDateTime.now()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+    public ResponseEntity<ErrorResponse> handleSpringDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse(403, "Access denied", LocalDateTime.now()));
     }
@@ -34,15 +53,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
         String message = ex.getMessage();
 
-        // Map common messages to proper HTTP status codes
-        if (message != null && (message.contains("not found") || message.contains("Not found"))) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponse(404, message, LocalDateTime.now()));
-        }
-        if (message != null && message.equals("Access denied")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponse(403, message, LocalDateTime.now()));
-        }
         if (message != null && (message.contains("already exists") || message.contains("already completed"))) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ErrorResponse(409, message, LocalDateTime.now()));
@@ -50,6 +60,14 @@ public class GlobalExceptionHandler {
         if (message != null && (message.contains("expired") || message.contains("Invalid"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse(401, message, LocalDateTime.now()));
+        }
+        if (message != null && message.contains("not found")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(404, message, LocalDateTime.now()));
+        }
+        if (message != null && message.contains("Access denied")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse(403, message, LocalDateTime.now()));
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -25,13 +25,11 @@ public class ProgressService {
     private final GamificationService gamificationService;
     private final NotificationService notificationService;
 
-    // ===== Submit Exercise =====
     @Transactional
     public String submitExercise(Long exerciseId, ExerciseSubmitRequest request, String parentEmail) {
         Child child = childRepository.findById(request.getChildId())
                 .orElseThrow(() -> new RuntimeException("Child not found"));
 
-        // Ownership check
         if (!child.getParent().getEmail().equals(parentEmail)) {
             throw new RuntimeException("Access denied");
         }
@@ -39,7 +37,9 @@ public class ProgressService {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
-        boolean isCorrect = request.getCorrect();
+        boolean isCorrect = exercise.getCorrectAnswer()
+                .trim()
+                .equalsIgnoreCase(request.getAnswer().trim());
 
         ExerciseResult result = ExerciseResult.builder()
                 .child(child)
@@ -52,13 +52,11 @@ public class ProgressService {
         return isCorrect ? "Correct!" : "Incorrect. Try again!";
     }
 
-    // ===== Complete Lesson =====
     @Transactional
     public LessonProgressResponse completeLesson(Long lessonId, Long childId, String parentEmail) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new RuntimeException("Child not found"));
 
-        // Ownership check — consistent with other methods
         if (!child.getParent().getEmail().equals(parentEmail)) {
             throw new RuntimeException("Access denied");
         }
@@ -100,7 +98,6 @@ public class ProgressService {
         return mapToResponse(progress);
     }
 
-    // ===== Progress History =====
     public List<LessonProgressResponse> getProgress(Long childId, String parentEmail) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new RuntimeException("Child not found"));
@@ -111,7 +108,6 @@ public class ProgressService {
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // ===== Child Badges =====
     public List<ChildBadgeResponse> getBadges(Long childId, String parentEmail) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new RuntimeException("Child not found"));

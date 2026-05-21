@@ -2,6 +2,7 @@ package kz.narxoz.backend.service;
 
 import kz.narxoz.backend.dto.request.ExerciseSubmitRequest;
 import kz.narxoz.backend.dto.response.ExerciseResultResponse;
+import kz.narxoz.backend.entity.Exercise;
 import kz.narxoz.backend.entity.ExerciseResult;
 import kz.narxoz.backend.repository.ChildRepository;
 import kz.narxoz.backend.repository.ExerciseRepository;
@@ -22,33 +23,33 @@ public class ExerciseResultService {
     private final ExerciseRepository exerciseRepository;
 
     @Transactional
-    public void saveResult(ExerciseSubmitRequest request) {
-        // Ищем ребенка по ID
+    public void saveResult(Long exerciseId, ExerciseSubmitRequest request) {
         var child = childRepository.findById(request.getChildId())
                 .orElseThrow(() -> new RuntimeException("Ребенок не найден с ID: " + request.getChildId()));
 
-        // Ищем упражнение по ID
-        var exercise = exerciseRepository.findById(request.getExerciseId())
-                .orElseThrow(() -> new RuntimeException("Упражнение не найдено с ID: " + request.getExerciseId()));
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new RuntimeException("Упражнение не найдено с ID: " + exerciseId));
 
-        // Собираем сущность через Builder (он у тебя есть в Entity)
+        boolean isCorrect = exercise.getCorrectAnswer()
+                .trim()
+                .equalsIgnoreCase(request.getAnswer().trim());
+
         ExerciseResult result = ExerciseResult.builder()
                 .child(child)
                 .exercise(exercise)
-                .correct(request.getCorrect())
+                .correct(isCorrect)
                 .timeTaken(request.getTimeTaken())
                 .build();
 
         resultRepository.save(result);
     }
 
-    // Метод для получения истории (для родителя)
     public List<ExerciseResultResponse> getChildResults(Long childId) {
         List<ExerciseResult> results = resultRepository.findAllByChildIdOrderBySubmittedAtDesc(childId);
 
         return results.stream().map(r -> new ExerciseResultResponse(
                 r.getId(),
-                r.getExercise().getQuestion(), // Берем только строку вопроса
+                r.getExercise().getQuestion(),
                 r.getCorrect(),
                 r.getTimeTaken(),
                 r.getSubmittedAt()
