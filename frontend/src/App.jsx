@@ -1,28 +1,86 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+    BrowserRouter,
+    Routes,
+    Route
+} from "react-router-dom";
 
-import Login from './pages/Login';
-import ChildMap from './pages/ChildMap';
-import Exercise from './pages/Exercise';
-import ParentDashboard from './pages/ParentDashboard';
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ChildSelector from "./pages/ChildSelector";
+import ChildMap from "./pages/ChildMap";
+import ParentDashboard from "./pages/ParentDashboard";
+import AdminPanel from "./pages/AdminPanel";
 
-function App() {
-    return (
-        <Router>
+import ProtectedRoute from "./components/ProtectedRoute";
+
+function App(){
+
+    return(
+
+        <BrowserRouter>
+
             <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/child" element={<ChildMap />} />
-                <Route path="/parent/stats" element={<ParentDashboard />} />
 
-                {/* Перенаправление с главной на логин */}
-                <Route path="/" element={<Navigate to="/login" />} />
-                <Route path="/exercise/:id" element={<Exercise />} />
+                <Route
+                    path="/"
+                    element={<Landing/>}
+                />
 
-                {/* Обработка несуществующих страниц */}
-                <Route path="*" element={<div style={{padding: '20px'}}><h1>404: Страница не найдена 🦖</h1></div>} />
+                <Route
+                    path="/login"
+                    element={<Login/>}
+                />
+
+                <Route
+                    path="/register"
+                    element={<Register/>}
+                />
+
+                <Route
+                    path="/children"
+                    element={
+                        <ProtectedRoute>
+
+                            <ChildSelector/>
+
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/map"
+                    element={
+                        <ProtectedRoute role="CHILD">
+                            <ChildMap/>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute role="PARENT">
+                            <ParentDashboard/>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute role="ADMIN">
+                            <AdminPanel/>
+                        </ProtectedRoute>
+                    }
+                />
+
             </Routes>
-        </Router>
-    );
+
+        </BrowserRouter>
+
+    )
+
 }
 
-export default App;
+export default App

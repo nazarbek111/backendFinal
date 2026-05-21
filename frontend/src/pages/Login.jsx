@@ -1,59 +1,102 @@
-import React, { useState } from 'react';
-import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
-const Login = () => {
-    const [email, setEmail] = useState('nazarbek.kaliyev@gmail.com');
-    const [password, setPassword] = useState('060106');
+export default function Login() {
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [serverError, setServerError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const submit = async (e) => {
         e.preventDefault();
-        console.log("Пытаюсь зайти с:", { email, password });
+        setServerError("");
+        setLoading(true);
+
         try {
-            const res = await api.post('/auth/login', { email, password });
-            console.log("Ответ бэка:", res.data);
+            const res = await api.post("/auth/login", {
+                email,
+                password,
+            });
 
-            window.location.href = '/child';
-
-            // Сохраняем токен (проверяем оба варианта названия)
             const token = res.data.accessToken || res.data.token;
-            localStorage.setItem('token', token);
+            const refreshToken = res.data.refreshToken;
 
-            alert("Успешный вход! 🎉");
-            navigate('/child');
-        } catch (err) {
-            console.error("Ошибка при логине:", err.response?.data || err.message);
-            alert("Ошибка: " + (err.response?.data?.message || "Неверный логин или пароль"));
+            const user = {
+                id: res.data.id,
+                name: res.data.name,
+                email: res.data.email || email,
+                role: res.data.role || "PARENT",
+            };
+
+            if (token) localStorage.setItem("token", token);
+            if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+            localStorage.setItem("user", JSON.stringify(user));
+
+            if (user.role === "ADMIN") {
+                navigate("/admin");
+            } else {
+                navigate("/children");
+            }
+        } catch (error) {
+            setServerError(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Login failed. Check email or password."
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#38bdf8' }}>
-            <div style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', width: '350px', textAlign: 'center' }}>
-                <h2 style={{ marginBottom: '20px', color: '#1e293b' }}>ВХОД В LITERACY.AI</h2>
-                <form onSubmit={handleLogin}>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email"
-                        style={{ width: '100%', padding: '12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-                    />
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Пароль"
-                        style={{ width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: '1px solid #ccc' }}
-                    />
-                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#f97316', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-                        ПОЕХАЛИ! 🚀
-                    </button>
-                </form>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-yellow-100 flex items-center justify-center p-6">
+            <form
+                onSubmit={submit}
+                className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 space-y-4"
+            >
+                <h1 className="text-3xl font-bold text-center text-slate-800">
+                    Login
+                </h1>
+
+                {serverError && (
+                    <div className="bg-red-100 text-red-700 p-3 rounded-xl">
+                        {serverError}
+                    </div>
+                )}
+
+                <input
+                    className="w-full border rounded-xl p-3"
+                    placeholder="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+
+                <input
+                    className="w-full border rounded-xl p-3"
+                    placeholder="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <button
+                    disabled={loading}
+                    className="w-full bg-blue-500 text-white rounded-xl p-3 font-bold hover:bg-blue-600 disabled:opacity-60"
+                >
+                    {loading ? "Loading..." : "Login"}
+                </button>
+
+                <p className="text-center text-sm">
+                    No account?{" "}
+                    <Link className="text-green-600 font-semibold" to="/register">
+                        Register
+                    </Link>
+                </p>
+            </form>
         </div>
     );
-};
-
-export default Login;
+}
